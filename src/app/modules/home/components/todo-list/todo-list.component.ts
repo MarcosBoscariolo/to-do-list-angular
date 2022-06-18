@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DoCheck } from '@angular/core';
 
 import { TaskList } from '../../model/task-list';
 
@@ -7,13 +7,21 @@ import { TaskList } from '../../model/task-list';
   templateUrl: './todo-list.component.html',
   styleUrls: ['./todo-list.component.scss']
 })
-export class TodoListComponent implements OnInit {
+export class TodoListComponent implements DoCheck {
 
-  taskList: Array<TaskList> = [];
+  taskList: Array<TaskList> = JSON.parse(localStorage.getItem("list") || '[]');
 
   constructor() { }
 
-  ngOnInit(): void {
+  ngDoCheck(): void {
+    this.setLocalStorage();
+  }
+
+  setLocalStorage() {
+    if (this.taskList) {
+      this.taskList.sort((first, last) => Number(first.checked) - Number(last.checked));
+      localStorage.setItem("list", JSON.stringify(this.taskList));
+    }
   }
 
   setEmitTaskList(event: string) {
@@ -28,6 +36,15 @@ export class TodoListComponent implements OnInit {
     const confirm = window.confirm("Deseja deletar todas as suas tarefas?");
     if (confirm) {
       this.taskList = [];
+    }
+  }
+
+  validationInput(event: string, index: number) {
+    if (!event.length) {
+      const confirm = window.confirm("Tarefa vazia, deseja apagar?");
+      if (confirm) {
+        this.deleteTask(index);
+      }
     }
   }
 
